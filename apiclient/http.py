@@ -709,11 +709,18 @@ class HttpRequest(object):
     for retry_num in xrange(num_retries + 1):
       if retry_num > 0:
         self._sleep(self._rand() * 2**retry_num)
-        logging.warning('Retry #%d for request: %s %s, following status: %d'
+        try:
+          logging.warning('Retry #%d for request: %s %s, following status: %d'
                         % (retry_num, self.method, self.uri, resp.status))
-
-      resp, content = http.request(str(self.uri), method=str(self.method),
+        except:
+          #~ for goagent
+          logging.warning('Retry #%d for request: %s %s'
+                        % (retry_num, self.method, self.uri))
+      try:
+        resp, content = http.request(str(self.uri), method=str(self.method),
                                    body=self.body, headers=self.headers)
+      except:
+        continue
       if resp.status < 500:
         break
 
