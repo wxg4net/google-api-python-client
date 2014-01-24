@@ -434,6 +434,7 @@ class StorageByKeyName(Storage):
       entity_key = db.Key.from_path(self._model.kind(), self._key_name)
       db.delete(entity_key)
 
+  @db.non_transactional(allow_existing=True)
   def locked_get(self):
     """Retrieve Credential from datastore.
 
@@ -456,6 +457,7 @@ class StorageByKeyName(Storage):
       credentials.set_store(self)
     return credentials
 
+  @db.non_transactional(allow_existing=True)
   def locked_put(self, credentials):
     """Write a Credentials to the datastore.
 
@@ -468,6 +470,7 @@ class StorageByKeyName(Storage):
     if self._cache:
       self._cache.set(self._key_name, credentials.to_json())
 
+  @db.non_transactional(allow_existing=True)
   def locked_delete(self):
     """Delete Credential from datastore."""
 
@@ -798,14 +801,18 @@ class OAuth2Decorator(object):
     url = self.flow.step1_get_authorize_url()
     return str(url)
 
-  def http(self):
+  def http(self, *args, **kwargs):
     """Returns an authorized http instance.
 
     Must only be called from within an @oauth_required decorated method, or
     from within an @oauth_aware decorated method where has_credentials()
     returns True.
+
+    Args:
+        args: Positional arguments passed to httplib2.Http constructor.
+        kwargs: Positional arguments passed to httplib2.Http constructor.
     """
-    return self.credentials.authorize(httplib2.Http())
+    return self.credentials.authorize(httplib2.Http(*args, **kwargs))
 
   @property
   def callback_path(self):
